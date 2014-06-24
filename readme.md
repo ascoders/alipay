@@ -36,3 +36,15 @@
 	
 	//前台接收到字符串后直接输出即可跳转
 	document.write(data);
+	
+如何接收支付宝同步跳转的页面
+**注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`**
+
+	/* 接收支付宝同步跳转的页面 */
+	func (this *ApiController) AlipayReturn() {
+		//错误代码(1为成功) 订单id(使用它查询订单) 买家支付宝账号(这个不错) 支付宝id(支付宝账单id)
+		status, orderId, buyerEmail, tradeNo := alipay.AlipayReturn(&this.Controller)
+		if status == 1 { //订单成功
+			//处理订单
+		}
+	}
