@@ -17,12 +17,12 @@
 全局初始化，您需要填写一些支付宝充值必要信息：
 
     func init() {
-	  //初始化支付宝插件
-	  alipay.AlipayPartner = **********
-	  alipay.AlipayKey = **********
-	  alipay.WebReturnUrl = "http://www.ascode.net/someurl" //替换成你的 异步回调页面
-	  alipay.WebNotifyUrl = "http://www.ascode.net/someurl" //替换成你的 同步回调页面
-	  alipay.WebSellerEmail = "huangziyi@ascode.net"        //替换成你的 支付宝账号邮箱
+		//初始化支付宝插件
+		alipay.AlipayPartner = **********
+		alipay.AlipayKey = **********
+		alipay.WebReturnUrl = "http://www.ascode.net/someurl" //替换成你的 异步回调页面
+		alipay.WebNotifyUrl = "http://www.ascode.net/someurl" //替换成你的 同步回调页面
+		alipay.WebSellerEmail = "huangziyi@ascode.net"        //替换成你的 支付宝账号邮箱
     }
 	
 用户点击支付按钮后如何调用SDK
@@ -44,7 +44,26 @@
 	func (this *ApiController) AlipayReturn() {
 		//错误代码(1为成功) 订单id(使用它查询订单) 买家支付宝账号(这个不错) 支付宝id(支付宝账单id)
 		status, orderId, buyerEmail, tradeNo := alipay.AlipayReturn(&this.Controller)
-		if status == 1 { //订单成功
+		if status == 1 { //付款成功，处理订单
 			//处理订单
 		}
 	}
+	
+如何接收支付宝异步跳转的页面
+**注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`**
+
+	/* 被动接收支付宝异步通知的页面 */
+	func (this *ApiController) AlipayNotify() {
+		status, orderId, buyerEmail, TradeNo := alipay.AlipayNotify(&this.Controller)
+		if status == 1 { //付款成功，处理订单
+			//处理订单
+		}
+	}
+	
+###结语
+
+支付宝流程基本就四步：初始化、构造请求用户付款、同步跳转付款、异步post接收付款请求
+
+目前此SDK在我酷游戏公司稳定使用，留了一点小小的私心，发一下公司网址 http://www.ascode.net
+
+还有一款智益游戏也不错哦，**看准颜色** http://as.baidu.com/a/item?docid=6601089
