@@ -24,3 +24,15 @@
 	  alipay.WebNotifyUrl = "http://www.ascode.net/someurl" //替换成你的 同步回调页面
 	  alipay.WebSellerEmail = "huangziyi@ascode.net"        //替换成你的 支付宝账号邮箱
     }
+	
+用户点击支付按钮后如何调用SDK
+
+	//创建订单order，生成了各种信息包括订单的唯一id
+	//获取支付宝即时到帐的自动提交表单
+	//四个参数分别是 订单唯一id(string) 充值金额(int) 实际充值的游戏币(int) 充值时给用户的描述(string)
+	form := alipay.CreateAlipaySign(order.Id.Hex(), int(number), order.Gain, order.AccountPay, "我酷游戏-充值代金券"+strconv.Itoa(order.Gain))
+	//为了更好的用户体验，可以以json方式调用，返回了json类型字符串
+	this.Data["json"] = form
+	
+	//前台接收到字符串后直接输出即可跳转
+	document.write(data);
