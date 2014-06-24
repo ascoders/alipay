@@ -11,3 +11,16 @@
  3.等待用户完成付款，此时如果用户没有关闭付款页面，大约3秒后会跳转到你网站指定的**同步回调页面**，如果用户关闭了网页，支付宝也会多次异步通知你的**异步回调页面**，这一切都是为了告诉你用户完成了付款。
 
  4.处理订单，在**同步回调页面**和**异步回调页面**调用此SDK，获取该订单ID，在数据库中查出并给相应账号充值（之后发邮件通知等等），一定要注意防止订单**重复充值**，你可以标记订单的active解决此问题。
+
+###SDK调用示例
+
+全局初始化，您需要填写一些支付宝充值必要信息：
+
+    func init() {
+	  //初始化支付宝插件
+	  alipay.AlipayPartner = **********
+	  alipay.AlipayKey = **********
+	  alipay.WebReturnUrl = "http://www.ascode.net/someurl" //替换成你的 异步回调页面
+	  alipay.WebNotifyUrl = "http://www.ascode.net/someurl" //替换成你的 同步回调页面
+	  alipay.WebSellerEmail = "huangziyi@ascode.net"        //替换成你的 支付宝账号邮箱
+    }
