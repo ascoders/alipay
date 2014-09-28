@@ -25,7 +25,7 @@
 		alipay.WebSellerEmail = "huangziyi@ascode.net"        //替换成你的 支付宝账号邮箱
 	}
 	
-# 如何调用
+### 如何调用
 
 	//四个参数分别是 订单唯一id(string) 充值金额(float32) 充值账户名称(string) 充值描述(string)
 	form := alipay.CreateAlipaySign("123", 19.8, "翱翔大空", "充值19.8元")
@@ -34,7 +34,7 @@
 	this.Data["json"] = form
 	this.ServerJson()
 	
-# 如何接收支付宝同步跳转的页面
+### 如何接收支付宝同步跳转的页面
 **注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`**
 
 	/* 接收支付宝同步跳转的页面 */
@@ -46,7 +46,7 @@
 		}
 	}
 	
-# 如何接收支付宝异步跳转的页面
+### 如何接收支付宝异步跳转的页面
 **注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`**
 
 	/* 被动接收支付宝异步通知的页面 */
