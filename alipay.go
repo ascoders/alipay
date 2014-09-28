@@ -1,5 +1,5 @@
-// AsCode (http://ascode.net/)
-// @authors     ascode
+// WoKu (http://www.wokugame.com/)
+// @authors     woku
 
 package alipay
 
@@ -23,19 +23,19 @@ var (
 )
 
 type AlipayParameters struct {
-	InputCharset string `json:"_input_charset"` //网站编码
-	Body         string `json:"body"`           //订单描述
-	NotifyUrl    string `json:"notify_url"`     //异步通知页面
-	OutTradeNo   string `json:"out_trade_no"`   //订单唯一id
-	Partner      string `json:"partner"`        //合作者身份ID
-	PaymentType  uint8  `json:"payment_type"`   //支付类型 1：商品购买
-	ReturnUrl    string `json:"return_url"`     //回调url
-	SellerEmail  string `json:"seller_email"`   //卖家支付宝邮箱
-	Service      string `json:"service"`        //接口名称
-	Subject      string `json:"subject"`        //商品名称
-	TotalFee     int    `json:"total_fee"`      //总价
-	Sign         string `json:"sign"`           //签名，生成签名时忽略
-	SignType     string `json:"sign_type"`      //签名类型，生成签名时忽略
+	InputCharset string  `json:"_input_charset"` //网站编码
+	Body         string  `json:"body"`           //订单描述
+	NotifyUrl    string  `json:"notify_url"`     //异步通知页面
+	OutTradeNo   string  `json:"out_trade_no"`   //订单唯一id
+	Partner      string  `json:"partner"`        //合作者身份ID
+	PaymentType  uint8   `json:"payment_type"`   //支付类型 1：商品购买
+	ReturnUrl    string  `json:"return_url"`     //回调url
+	SellerEmail  string  `json:"seller_email"`   //卖家支付宝邮箱
+	Service      string  `json:"service"`        //接口名称
+	Subject      string  `json:"subject"`        //商品名称
+	TotalFee     float32 `json:"total_fee"`      //总价
+	Sign         string  `json:"sign"`           //签名，生成签名时忽略
+	SignType     string  `json:"sign_type"`      //签名类型，生成签名时忽略
 }
 
 /* 按照支付宝规则生成sign */
@@ -60,6 +60,11 @@ func alipaySign(param interface{}) string {
 		detail := strings.SplitN(v, ":", 2)
 		//排除sign和sign_type
 		if detail[0] != "sign" && detail[0] != "sign_type" {
+			//total_fee转化为2位小数
+			if detail[0] == "total_fee" {
+				number, _ := strconv.ParseFloat(detail[1], 32)
+				detail[1] = strconv.FormatFloat(number, 'f', 2, 64)
+			}
 			if sign == "" {
 				sign = detail[0] + "=" + detail[1]
 			} else {
@@ -83,11 +88,11 @@ func alipaySign(param interface{}) string {
  * @params string 充值账户的名称
  * @params string 充值描述
  */
-func CreateAlipaySign(orderId string, fee int, gain int, account string, subject string) string {
+func CreateAlipaySign(orderId string, fee float32, nickname string, subject string) string {
 	//实例化参数
 	param := &AlipayParameters{}
 	param.InputCharset = "utf-8"
-	param.Body = "为" + account + "充值" + strconv.Itoa(gain) + "代金券"
+	param.Body = "为" + nickname + "充值" + strconv.FormatFloat(float64(fee), 'f', 2, 32) + "元"
 	param.NotifyUrl = WebNotifyUrl
 	param.OutTradeNo = orderId
 	param.Partner = AlipayPartner
@@ -115,7 +120,7 @@ func CreateAlipaySign(orderId string, fee int, gain int, account string, subject
 			<input type="hidden" name="seller_email" value="` + param.SellerEmail + `">
 			<input type="hidden" name="service" value="` + param.Service + `">
 			<input type="hidden" name="subject" value="` + param.Subject + `">
-			<input type="hidden" name="total_fee" value="` + strconv.Itoa(param.TotalFee) + `">
+			<input type="hidden" name="total_fee" value="` + strconv.FormatFloat(float64(param.TotalFee), 'f', 2, 32) + `">
 			<input type="hidden" name="sign" value="` + param.Sign + `">
 			<input type="hidden" name="sign_type" value="` + param.SignType + `">
 		</form>
