@@ -16,28 +16,25 @@
 
 全局初始化，您需要填写一些支付宝充值必要信息：
 
-    func init() {
+	func init() {
 		//初始化支付宝插件
 		alipay.AlipayPartner = **********
 		alipay.AlipayKey = **********
 		alipay.WebReturnUrl = "http://www.ascode.net/someurl" //替换成你的 异步回调页面
 		alipay.WebNotifyUrl = "http://www.ascode.net/someurl" //替换成你的 同步回调页面
 		alipay.WebSellerEmail = "huangziyi@ascode.net"        //替换成你的 支付宝账号邮箱
-    }
+	}
 	
-用户点击支付按钮后如何调用SDK
+# 如何调用
 
-	//创建订单order，生成了各种信息包括订单的唯一id
-	//获取支付宝即时到帐的自动提交表单
-	//四个参数分别是 订单唯一id(string) 充值金额(int) 实际充值的游戏币(int) 充值时给用户的描述(string)
-	form := alipay.CreateAlipaySign(order.Id.Hex(), int(number), order.Gain, order.AccountPay, "我酷游戏-充值代金券"+strconv.Itoa(order.Gain))
-	//为了更好的用户体验，可以以json方式调用，返回了json类型字符串
+	//四个参数分别是 订单唯一id(string) 充值金额(float32) 充值账户名称(string) 充值描述(string)
+	form := alipay.CreateAlipaySign("123", 19.8, "翱翔大空", "充值19.8元")
+
+	//返回表单(在html插入此form会自动跳转到支付宝支付页面)
 	this.Data["json"] = form
+	this.ServerJson()
 	
-	//前台接收到字符串后直接输出即可跳转
-	document.write(data);
-	
-如何接收支付宝同步跳转的页面
+# 如何接收支付宝同步跳转的页面
 **注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`**
 
 	/* 接收支付宝同步跳转的页面 */
@@ -49,7 +46,7 @@
 		}
 	}
 	
-如何接收支付宝异步跳转的页面
+# 如何接收支付宝异步跳转的页面
 **注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`**
 
 	/* 被动接收支付宝异步通知的页面 */
@@ -63,7 +60,3 @@
 ### 结语
 
 支付宝流程基本就四步：初始化、构造请求用户付款、同步跳转付款、异步post接收付款请求
-
-目前此SDK在我酷游戏公司稳定使用，留了一点小小的私心，发一下公司网址 http://www.wokugame.com
-
-还有一款智益游戏也不错哦，**看准颜色** http://shouji.baidu.com/game/item?docid=6885133&from=as
