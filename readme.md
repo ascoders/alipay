@@ -17,20 +17,23 @@
 全局初始化，您需要填写一些支付宝充值必要信息：
 
 	func init() {
-		//初始化支付宝插件
+		//init alipay params
 		alipay.AlipayPartner = **********
 		alipay.AlipayKey = **********
-		alipay.WebReturnUrl = "http://www.ascode.net/someurl" //替换成你的 异步回调页面
-		alipay.WebNotifyUrl = "http://www.ascode.net/someurl" //替换成你的 同步回调页面
-		alipay.WebSellerEmail = "huangziyi@ascode.net"        //替换成你的 支付宝账号邮箱
+		alipay.WebReturnUrl = "http://www.wokugame.com/someurl"	//replace to your owner return url
+		alipay.WebNotifyUrl = "http://www.wokugame.com/someurl"	//replace to your owner notify url
+		alipay.WebSellerEmail = "huangziyi@wokugame.com"			//replace to your owner alipay email
 	}
 	
 ### 如何调用
 
-	//四个参数分别是 订单唯一id(string) 充值金额(float32) 充值账户名称(string) 充值描述(string)
+	//your unique order id
+	//pay money
+	//account's nickname you pay to
+	//pay's description
 	form := alipay.CreateAlipaySign("123", 19.8, "翱翔大空", "充值19.8元")
 
-	//返回表单(在html插入此form会自动跳转到支付宝支付页面)
+	//inner this html to your page,it will automatically jump to the Alipay payment page
 	this.Data["json"] = form
 	this.ServerJson()
 	
