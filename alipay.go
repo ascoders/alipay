@@ -125,7 +125,7 @@ func CreateAlipaySign(orderId string, fee float32, nickname string, subject stri
 			<input type="hidden" name="sign_type" value="` + param.SignType + `">
 		</form>
 		<script>
-			$("#alipaysubmit").submit();
+			document.forms['alipaysubmit'].submit();
 		</script>
 	`
 }

@@ -1,6 +1,83 @@
-# beego版支付宝SDK！
+## golang版支付宝SDK！
 
-### 支付流程介绍
+做最好的支付宝sdk，大家的支持就是作者最大的动力！
+
+#### 安装
+
+	go get github.com/ascoders/alipay
+
+#### 初始化
+
+初始化，您需要填写一些支付宝充值必要信息：
+
+	import "github.com/ascoders/alipay"
+
+	func init() {
+		//init alipay params
+		alipay.AlipayPartner = 0000000000000000
+		alipay.AlipayKey = 000000000000000000000	
+		alipay.WebReturnUrl = "http://www.wokugame.com/alipay/return"
+		alipay.WebNotifyUrl = "http://www.wokugame.com/alipay/notify"
+		alipay.WebSellerEmail = "huangziyi@wokugame.com"
+	}
+	
+#### 生成付款表单
+
+	/* @params string		unique order id
+	 * @params float32	pay money
+	 * @params string		payment account nickname
+	 * @params string		pay description
+	 */
+	form := alipay.CreateAlipaySign("123", 19.8, "翱翔大空", "充值19.8元")
+
+	// render "form"
+	fmt.Println(form)
+	
+以上生成的form放在页面任何位置，会利用js自动跳转到支付宝付款页面。
+	
+#### 监听支付宝回调页面
+
+注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`
+
+	func (this *ApiController) Test() {
+		//错误代码(1为成功) 订单id(使用它查询订单) 买家支付宝账号(这个不错) 支付宝id(支付宝账单id)
+		status, orderId, buyerEmail, tradeNo := alipay.AlipayReturn(&this.Controller)
+		if status == 1 { //付款成功，处理订单
+			//处理订单
+		}
+	}
+
+参数解析：
+
+`status` - 错误代码
+
+ - -1  最基本的网站交易号为空
+ - -2  签名认证失败
+ - -3  解析表单内容，失败返回错误代
+ - -4  交易未完成
+
+`orderId` - 订单id
+
+它是订单唯一id，用它来查询交易订单
+
+`buyerEmail` - 买家支付宝账号
+
+`tradeNo` - 支付宝订单号
+
+它是支付宝的订单唯一id，虽然与本站订单id没有关系，但在支付宝查询上会用到
+
+#### 监听支付宝异步post信息
+
+	func (this *ApiController) Test() {
+		status, orderId, buyerEmail, TradeNo := alipay.AlipayNotify(&this.Controller)
+		if status == 1 { //付款成功，处理订单
+			//处理订单
+		}
+	}
+	
+#### 支付流程介绍
+
+支付宝流程基本就四步：初始化、构造请求用户付款、同步跳转付款、异步post接收付款请求。
 
 用户在您的网站点击支付按钮后，您的网站需要经历下述操作：
 
@@ -12,54 +89,6 @@
 
  4.处理订单，在**同步回调页面**和**异步回调页面**调用此SDK，获取该订单ID，在数据库中查出并给相应账号充值（之后发邮件通知等等），一定要注意防止订单**重复充值**，你可以标记订单的active解决此问题。
 
-### SDK调用示例
+#### 提示
 
-全局初始化，您需要填写一些支付宝充值必要信息：
-
-	func init() {
-		//init alipay params
-		alipay.AlipayPartner = **********
-		alipay.AlipayKey = **********
-		alipay.WebReturnUrl = "http://www.wokugame.com/someurl"	//replace to your owner return url
-		alipay.WebNotifyUrl = "http://www.wokugame.com/someurl"	//replace to your owner notify url
-		alipay.WebSellerEmail = "huangziyi@wokugame.com"			//replace to your owner alipay email
-	}
-	
-### 如何调用
-
-	//your unique order id
-	//pay money
-	//account's nickname you pay to
-	//pay's description
-	form := alipay.CreateAlipaySign("123", 19.8, "翱翔大空", "充值19.8元")
-
-	//inner this html to your page,it will automatically jump to the Alipay payment page
-	this.Data["json"] = form
-	this.ServerJson()
-	
-### 如何接收支付宝同步跳转的页面
-**注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`**
-
-	/* 接收支付宝同步跳转的页面 */
-	func (this *ApiController) AlipayReturn() {
-		//错误代码(1为成功) 订单id(使用它查询订单) 买家支付宝账号(这个不错) 支付宝id(支付宝账单id)
-		status, orderId, buyerEmail, tradeNo := alipay.AlipayReturn(&this.Controller)
-		if status == 1 { //付款成功，处理订单
-			//处理订单
-		}
-	}
-	
-### 如何接收支付宝异步跳转的页面
-**注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`**
-
-	/* 被动接收支付宝异步通知的页面 */
-	func (this *ApiController) AlipayNotify() {
-		status, orderId, buyerEmail, TradeNo := alipay.AlipayNotify(&this.Controller)
-		if status == 1 { //付款成功，处理订单
-			//处理订单
-		}
-	}
-	
-### 结语
-
-支付宝流程基本就四步：初始化、构造请求用户付款、同步跳转付款、异步post接收付款请求
+本着轻量便捷的原则，监听回调事件上深度依赖 beego 框架，将监听事件的代码量降到最低。
