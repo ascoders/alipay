@@ -8,6 +8,7 @@
 
 #### 初始化
 
+
 初始化，您需要填写一些支付宝充值必要信息：
 
 	import "github.com/ascoders/alipay"
@@ -66,7 +67,7 @@
 
 它是支付宝的订单唯一id，虽然与本站订单id没有关系，但在支付宝查询上会用到
 
-#### 监听支付宝异步post信息
+#### 监听支付宝异步post信息 
 
 	func (this *ApiController) Test() {
 		status, orderId, buyerEmail, TradeNo := alipay.AlipayNotify(&this.Controller)
