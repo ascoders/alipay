@@ -1,38 +1,44 @@
-## golang版支付宝SDK！
+# golang版支付宝SDK！
 
 做最好的支付宝sdk，大家的支持就是作者最大的动力！
 
 #### 安装
 
-	go get github.com/ascoders/alipay
+~~~ go
+go get github.com/ascoders/alipay
+~~~
 
 #### 初始化
 
 
 初始化，您需要填写一些支付宝充值必要信息：
 
-	import "github.com/ascoders/alipay"
+~~~ go
+import "github.com/ascoders/alipay"
 
-	func init() {
-		//init alipay params
-		alipay.AlipayPartner = 0000000000000000
-		alipay.AlipayKey = 000000000000000000000	
-		alipay.WebReturnUrl = "http://www.wokugame.com/alipay/return"
-		alipay.WebNotifyUrl = "http://www.wokugame.com/alipay/notify"
-		alipay.WebSellerEmail = "huangziyi@wokugame.com"
-	}
+func init() {
+	//init alipay params
+	alipay.AlipayPartner = 0000000000000000
+	alipay.AlipayKey = 000000000000000000000	
+	alipay.WebReturnUrl = "http://www.wokugame.com/alipay/return"
+	alipay.WebNotifyUrl = "http://www.wokugame.com/alipay/notify"
+	alipay.WebSellerEmail = "huangziyi@wokugame.com"
+}
+~~~
 	
 #### 生成付款表单
 
-	/* @params string		unique order id
-	 * @params float32	pay money
-	 * @params string		payment account nickname
-	 * @params string		pay description
-	 */
-	form := alipay.CreateAlipaySign("123", 19.8, "翱翔大空", "充值19.8元")
+~~~ go
+/* @params string		unique order id
+ * @params float32	pay money
+ * @params string		payment account nickname
+ * @params string		pay description
+ */
+form := alipay.CreateAlipaySign("123", 19.8, "翱翔大空", "充值19.8元")
 
-	// render "form"
-	fmt.Println(form)
+// render "form"
+fmt.Println(form)
+~~~
 	
 以上生成的form放在页面任何位置，会利用js自动跳转到支付宝付款页面。
 	
@@ -40,13 +46,15 @@
 
 注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`
 
-	func (this *ApiController) Test() {
-		//错误代码(1为成功) 订单id(使用它查询订单) 买家支付宝账号(这个不错) 支付宝id(支付宝账单id)
-		status, orderId, buyerEmail, tradeNo := alipay.AlipayReturn(&this.Controller)
-		if status == 1 { //付款成功，处理订单
-			//处理订单
-		}
+~~~ go
+func (this *ApiController) Test() {
+	//错误代码(1为成功) 订单id(使用它查询订单) 买家支付宝账号(这个不错) 支付宝id(支付宝账单id)
+	status, orderId, buyerEmail, tradeNo := alipay.AlipayReturn(&this.Controller)
+	if status == 1 { //付款成功，处理订单
+		//处理订单
 	}
+}
+~~~
 
 参数解析：
 
@@ -69,12 +77,14 @@
 
 #### 监听支付宝异步post信息 
 
-	func (this *ApiController) Test() {
-		status, orderId, buyerEmail, TradeNo := alipay.AlipayNotify(&this.Controller)
-		if status == 1 { //付款成功，处理订单
-			//处理订单
-		}
+~~~ go
+func (this *ApiController) Test() {
+	status, orderId, buyerEmail, TradeNo := alipay.AlipayNotify(&this.Controller)
+	if status == 1 { //付款成功，处理订单
+		//处理订单
 	}
+}
+~~~
 	
 #### 支付流程介绍
 
