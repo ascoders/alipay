@@ -45,17 +45,21 @@ func alipaySign(param interface{}) string {
 	if err != nil {
 		return ""
 	}
+
 	//重组字符串
 	var sign string
 	oldString := string(paramBytes)
+
 	//为保证签名前特殊字符串没有被转码，这里解码一次
 	oldString = strings.Replace(oldString, `\u003c`, "<", -1)
 	oldString = strings.Replace(oldString, `\u003e`, ">", -1)
+
 	//去除特殊标点
 	oldString = strings.Replace(oldString, "\"", "", -1)
 	oldString = strings.Replace(oldString, "{", "", -1)
 	oldString = strings.Replace(oldString, "}", "", -1)
 	paramArray := strings.Split(oldString, ",")
+
 	for _, v := range paramArray {
 		detail := strings.SplitN(v, ":", 2)
 		//排除sign和sign_type
@@ -72,8 +76,10 @@ func alipaySign(param interface{}) string {
 			}
 		}
 	}
+
 	//追加密钥
 	sign += AlipayKey
+
 	//md5加密
 	m := md5.New()
 	m.Write([]byte(sign))
@@ -102,11 +108,14 @@ func CreateAlipaySign(orderId string, fee float32, nickname string, subject stri
 	param.Service = "create_direct_pay_by_user"
 	param.Subject = subject
 	param.TotalFee = fee
+
 	//生成签名
 	sign := alipaySign(param)
+
 	//追加参数
 	param.Sign = sign
 	param.SignType = "MD5"
+
 	//生成自动提交form
 	return `
 		<form id="alipaysubmit" name="alipaysubmit" action="https://mapi.alipay.com/gateway.do?_input_charset=utf-8" method="get" style='display:none;'>
@@ -153,8 +162,10 @@ func AlipayReturn(contro *beego.Controller) (int, string, string, string) {
 		Sign        string `form:"sign" json:"sign"`                 //签名
 		SignType    string `form:"sign_type" json:"sign_type"`       //签名类型
 	}
+
 	//实例化参数
 	param := &Params{}
+
 	//解析表单内容，失败返回错误代码-3
 	if err := contro.ParseForm(param); err != nil {
 		return -3, "", "", ""
@@ -165,6 +176,7 @@ func AlipayReturn(contro *beego.Controller) (int, string, string, string) {
 	} else {
 		//生成签名
 		sign := alipaySign(param)
+
 		//对比签名是否相同
 		if sign == param.Sign { //只有相同才说明该订单成功了
 			//判断订单是否已完成
@@ -177,6 +189,7 @@ func AlipayReturn(contro *beego.Controller) (int, string, string, string) {
 			return -2, "", "", ""
 		}
 	}
+
 	//位置错误类型-5
 	return -5, "", "", ""
 }
@@ -185,15 +198,19 @@ func AlipayReturn(contro *beego.Controller) (int, string, string, string) {
 func AlipayNotify(contro *beego.Controller) (int, string, string, string) {
 	//从body里读取参数，用&切割
 	postArray := strings.Split(string(contro.Ctx.Input.CopyBody()), "&")
+
 	//实例化url
 	urls := &url.Values{}
+
 	//保存传参的sign
 	var paramSign string
 	var sign string
+
 	//如果字符串中包含sec_id说明是手机端的异步通知
 	if strings.Index(string(contro.Ctx.Input.CopyBody()), `alipay.wap.trade.create.direct`) == -1 { //快捷支付
 		for _, v := range postArray {
 			detail := strings.Split(v, "=")
+
 			//使用=切割字符串 去除sign和sign_type
 			if detail[0] == "sign" || detail[0] == "sign_type" {
 				if detail[0] == "sign" {
@@ -204,19 +221,21 @@ func AlipayNotify(contro *beego.Controller) (int, string, string, string) {
 				urls.Add(detail[0], detail[1])
 			}
 		}
-		//url解码
+
+		// url解码
 		urlDecode, _ := url.QueryUnescape(urls.Encode())
 		sign, _ = url.QueryUnescape(urlDecode)
-	} else { //手机网页支付
-		mobileOrder := []string{"service", "v", "sec_id", "notify_data"} //手机字符串加密顺序
+	} else { // 手机网页支付
+		// 手机字符串加密顺序
+		mobileOrder := []string{"service", "v", "sec_id", "notify_data"}
 		for _, v := range mobileOrder {
 			for _, value := range postArray {
 				detail := strings.Split(value, "=")
-				//保存sign
+				// 保存sign
 				if detail[0] == "sign" {
 					paramSign = detail[1]
 				} else {
-					//如果满足当前v
+					// 如果满足当前v
 					if detail[0] == v {
 						if sign == "" {
 							sign = detail[0] + "=" + detail[1]
@@ -228,24 +247,28 @@ func AlipayNotify(contro *beego.Controller) (int, string, string, string) {
 			}
 		}
 		sign, _ = url.QueryUnescape(sign)
+
 		//获取<trade_status></trade_status>之间的request_token
 		re, _ := regexp.Compile("\\<trade_status[\\S\\s]+?\\</trade_status>")
 		rt := re.FindAllString(sign, 1)
 		trade_status := strings.Replace(rt[0], "<trade_status>", "", -1)
 		trade_status = strings.Replace(trade_status, "</trade_status>", "", -1)
 		urls.Add("trade_status", trade_status)
+
 		//获取<out_trade_no></out_trade_no>之间的request_token
 		re, _ = regexp.Compile("\\<out_trade_no[\\S\\s]+?\\</out_trade_no>")
 		rt = re.FindAllString(sign, 1)
 		out_trade_no := strings.Replace(rt[0], "<out_trade_no>", "", -1)
 		out_trade_no = strings.Replace(out_trade_no, "</out_trade_no>", "", -1)
 		urls.Add("out_trade_no", out_trade_no)
+
 		//获取<buyer_email></buyer_email>之间的request_token
 		re, _ = regexp.Compile("\\<buyer_email[\\S\\s]+?\\</buyer_email>")
 		rt = re.FindAllString(sign, 1)
 		buyer_email := strings.Replace(rt[0], "<buyer_email>", "", -1)
 		buyer_email = strings.Replace(buyer_email, "</buyer_email>", "", -1)
 		urls.Add("buyer_email", buyer_email)
+
 		//获取<trade_no></trade_no>之间的request_token
 		re, _ = regexp.Compile("\\<trade_no[\\S\\s]+?\\</trade_no>")
 		rt = re.FindAllString(sign, 1)
@@ -255,6 +278,7 @@ func AlipayNotify(contro *beego.Controller) (int, string, string, string) {
 	}
 	//追加密钥
 	sign += AlipayKey
+
 	//md5加密
 	m := md5.New()
 	m.Write([]byte(sign))
