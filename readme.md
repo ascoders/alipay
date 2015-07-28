@@ -10,77 +10,90 @@ go get github.com/ascoders/alipay
 
 #### 初始化
 
-
-初始化，您需要填写一些支付宝充值必要信息：
-
 ~~~ go
-import "github.com/ascoders/alipay"
-
-func init() {
-	//init alipay params
-	alipay.AlipayPartner = 0000000000000000
-	alipay.AlipayKey = 000000000000000000000	
-	alipay.WebReturnUrl = "http://www.wokugame.com/alipay/return"
-	alipay.WebNotifyUrl = "http://www.wokugame.com/alipay/notify"
-	alipay.WebSellerEmail = "huangziyi@wokugame.com"
+alipay := alipay.Client{
+	Partner   : "", // 合作者ID
+	Key       : "", // 合作者私钥
+	ReturnUrl : "", // 同步返回地址
+	NotifyUrl : "", // 网站异步返回地址
+	Email     : "", // 网站卖家邮箱地址
 }
 ~~~
-	
-#### 生成付款表单
+
+alipay升级到2.0版本，[api_v1.0](doc/v1.md)依旧兼容
+
+#### 生成提交表单
 
 ~~~ go
-/* @params string		unique order id
- * @params float32	pay money
- * @params string		payment account nickname
- * @params string		pay description
- */
-form := alipay.CreateAlipaySign("123", 19.8, "翱翔大空", "充值19.8元")
-
-// render "form"
-fmt.Println(form)
+form := alipay.Form(alipay.Options{
+	OrderId:  "123",
+	Fee:      99.8,
+	NickName: "翱翔大空",
+	Subject:  "充值100",
+})
 ~~~
-	
-以上生成的form放在页面任何位置，会利用js自动跳转到支付宝付款页面。
-	
-#### 监听支付宝回调页面
+
+将form输出到页面上，会自动跳转至支付宝收银台。
+
+#### 回调处理
+
+回调分为`同步`和`异步`，支付成功后跳转至商户页面成为`同步回调`，跳转地址在`ReturnUrl`参数中配置。支付宝每隔10 10 30 ... 秒发送一次异步请求称之为`异步回调`，通知地址在`NotifyUrl`中配置。
+
+##### 同步回调（依赖beego）
 
 注意这里需要解析get请求参数，为了自动获取，请传入beego的`&this.Controller`
 
 ~~~ go
-func (this *ApiController) Test() {
-	//错误代码(1为成功) 订单id(使用它查询订单) 买家支付宝账号(这个不错) 支付宝id(支付宝账单id)
-	status, orderId, buyerEmail, tradeNo := alipay.AlipayReturn(&this.Controller)
-	if status == 1 { //付款成功，处理订单
+func (this *ApiController) Return() {
+	result := alipay.Return(&this.Controller)
+	if result.Status == 1 { //付款成功，处理订单
 		//处理订单
 	}
 }
 ~~~
 
-参数解析：
+参数：
 
-`status` - 错误代码
+- Partner	// 合作者ID
+- Key       // 合作者私钥
+- ReturnUrl // 同步返回地址
+- NotifyUrl // 网站异步返回地址
+- Email     // 网站卖家邮箱地址
 
- - -1  最基本的网站交易号为空
- - -2  签名认证失败
- - -3  解析表单内容，失败返回错误代
- - -4  交易未完成
+至于为什么没有给充值金额参数，因为金额不能代表问题，例如打折或者做活动，请自行查询订单表，根据业务逻辑进行处理。
 
-`orderId` - 订单id
+##### 同步回调（无依赖）
 
-它是订单唯一id，用它来查询交易订单
-
-`buyerEmail` - 买家支付宝账号
-
-`tradeNo` - 支付宝订单号
-
-它是支付宝的订单唯一id，虽然与本站订单id没有关系，但在支付宝查询上会用到
-
-#### 监听支付宝异步post信息 
+感谢@atnet提供的代码，让alipay支持原生http请求，脱离推框架的依赖。
 
 ~~~ go
-func (this *ApiController) Test() {
-	status, orderId, buyerEmail, TradeNo := alipay.AlipayNotify(&this.Controller)
-	if status == 1 { //付款成功，处理订单
+func ReturnHandle(w http.ResponseWriter, r *http.Request) {
+	result := alipay.NativeReturn(r)
+	if result.Status == 1 { //付款成功，处理订单
+		//处理订单
+	}
+}
+~~~
+
+##### 异步回调（依赖beego）
+
+~~~ go
+func (this *ApiController) Notify() {
+	result := alipay.Notify(&this.Controller)
+	if result.Status == 1 { //付款成功，处理订单
+		//处理订单
+	}
+}
+~~~
+
+> 异步回调的返回参数与同步回调相同。
+
+##### 异步回调（无依赖）
+	
+~~~ go
+func NotifyHandle(w http.ResponseWriter, r *http.Request) {
+	result := alipay.NativeNotify(r)
+	if result.Status == 1 { //付款成功，处理订单
 		//处理订单
 	}
 }
@@ -99,7 +112,3 @@ func (this *ApiController) Test() {
  3.等待用户完成付款，此时如果用户没有关闭付款页面，大约3秒后会跳转到你网站指定的**同步回调页面**，如果用户关闭了网页，支付宝也会多次异步通知你的**异步回调页面**，这一切都是为了告诉你用户完成了付款。
 
  4.处理订单，在**同步回调页面**和**异步回调页面**调用此SDK，获取该订单ID，在数据库中查出并给相应账号充值（之后发邮件通知等等），一定要注意防止订单**重复充值**，你可以标记订单的active解决此问题。
-
-#### 提示
-
-本着轻量便捷的原则，监听回调事件上深度依赖 beego 框架，将监听事件的代码量降到最低。
