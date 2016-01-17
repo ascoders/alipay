@@ -242,11 +242,11 @@ func (this *Client) Notify(contro *beego.Controller) *Result {
 		urls.Add("trade_no", trade_no)
 	}
 	// 追加密钥
-	sign += AlipayKey
+	sign += this.AlipayKey
 
 	// 返回参数
 	result := &Result{}
-
+	
 	// md5加密
 	m := md5.New()
 	m.Write([]byte(sign))
