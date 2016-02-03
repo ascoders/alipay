@@ -132,7 +132,7 @@ func AlipayReturn(contro *beego.Controller) (int, string, string, string) {
 /* 被动接收支付宝异步通知 */
 func AlipayNotify(contro *beego.Controller) (int, string, string, string) {
 	//从body里读取参数，用&切割
-	postArray := strings.Split(string(contro.Ctx.Input.CopyBody()), "&")
+	postArray := strings.Split(string(contro.Ctx.Input.CopyBody(beego.BConfig.MaxMemory)), "&")
 
 	//实例化url
 	urls := &url.Values{}
@@ -142,7 +142,7 @@ func AlipayNotify(contro *beego.Controller) (int, string, string, string) {
 	var sign string
 
 	//如果字符串中包含sec_id说明是手机端的异步通知
-	if strings.Index(string(contro.Ctx.Input.CopyBody()), `alipay.wap.trade.create.direct`) == -1 { //快捷支付
+	if strings.Index(string(contro.Ctx.Input.CopyBody(beego.BConfig.MaxMemory)), `alipay.wap.trade.create.direct`) == -1 { //快捷支付
 		for _, v := range postArray {
 			detail := strings.Split(v, "=")
 
