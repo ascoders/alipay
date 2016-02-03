@@ -242,7 +242,7 @@ func (this *Client) Notify(contro *beego.Controller) *Result {
 		urls.Add("trade_no", trade_no)
 	}
 	// 追加密钥
-	sign += this.AlipayKey
+	sign += this.Key
 
 	// 返回参数
 	result := &Result{}
