@@ -47,12 +47,12 @@ func (this *Client) Form(opts Options) string {
 	param := &AlipayParameters{}
 	param.InputCharset = "utf-8"
 	param.Body = "为" + opts.NickName + "充值" + strconv.FormatFloat(float64(opts.Fee), 'f', 2, 32) + "元"
-	param.NotifyUrl = WebNotifyUrl
+	param.NotifyUrl = this.NotifyUrl
 	param.OutTradeNo = opts.OrderId
-	param.Partner = AlipayPartner
+	param.Partner = this.Partner
 	param.PaymentType = 1
-	param.ReturnUrl = WebReturnUrl
-	param.SellerEmail = WebSellerEmail
+	param.ReturnUrl = this.ReturnUrl
+	param.SellerEmail = this.Email
 	param.Service = "create_direct_pay_by_user"
 	param.Subject = opts.Subject
 	param.TotalFee = opts.Fee
